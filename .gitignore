@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+backend/venv/
+backend/lambda_functions/*.egg-info/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.serverless
+
+# Build outputs
+.next/
+dist/
+build/
+frontend/.next/
+frontend/out/
+frontend/deployment.zip
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# AWS
+.aws/
+cdk.context.json
+
+# CDK
+infrastructure/cdk.out/
+infrastructure/node_modules/
+infrastructure/lib/*.js
+infrastructure/lib/*.d.ts
+
+# Lambda function dependencies
+backend/lambda_functions/boto3/
+backend/lambda_functions/botocore/
+backend/lambda_functions/stripe/
+backend/lambda_functions/jinja2/
+backend/lambda_functions/dateutil/
+
+# Test outputs
+coverage/
+.coverage
+.pytest_cache/
+test-results/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Q CLI context (optional - can be committed if desired)
+.q-context/
+
+# Output directory
+output/

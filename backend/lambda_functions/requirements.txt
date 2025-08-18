@@ -1,0 +1,14 @@
+# Core AWS dependencies
+boto3==1.34.34
+stripe==7.8.0
+jinja2==3.1.2
+python-dateutil==2.8.2
+
+# PDF processing (for document upload handling)
+PyPDF2>=3.0.0
+
+# Bedrock RAG dependencies
+numpy>=1.21.0,<2.0.0
+
+# Text processing for RAG
+nltk>=3.8.0,<4.0.0

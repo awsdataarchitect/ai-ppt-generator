@@ -1,0 +1,106 @@
+name: Deploy AI PPT Generator
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run test
+      
+      - name: Run backend tests
+        run: |
+          cd backend
+          pytest
+      
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+  deploy-infrastructure:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Deploy CDK stack
+        run: |
+          cd infrastructure
+          npm install
+          npx cdk deploy --require-approval never
+
+  deploy-backend:
+    needs: [test, deploy-infrastructure]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to AWS Lambda
+        run: |
+          cd backend
+          zip -r function.zip .
+          aws lambda update-function-code \
+            --function-name ai-ppt-backend \
+            --zip-file fileb://function.zip
+
+  deploy-frontend:
+    needs: [test, deploy-infrastructure]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Amplify
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          aws amplify start-deployment \
+            --app-id ${{ secrets.AMPLIFY_APP_ID }} \
+            --branch-name main

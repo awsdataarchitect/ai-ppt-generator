@@ -1,0 +1,144 @@
+type Presentation {
+  id: ID!
+  userId: String!
+  title: String!
+  description: String
+  slides: String!
+  theme: String
+  contextUsed: Boolean
+  sources: String
+  relevantChunksCount: Int
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  status: PresentationStatus!
+}
+
+enum PresentationStatus {
+  DRAFT
+  PUBLISHED
+}
+
+input CreatePresentationInput {
+  title: String!
+  description: String
+  slides: String!
+  theme: String
+  contextUsed: Boolean
+  sources: String
+  relevantChunksCount: Int
+}
+
+input UpdatePresentationInput {
+  title: String
+  description: String
+  slides: [String!]
+  status: PresentationStatus
+}
+
+type AIGenerationResult {
+  title: String!
+  slides: [String!]!
+  success: Boolean!
+  message: String!
+}
+
+type DocumentUploadResult {
+  success: Boolean!
+  message: String!
+  documentId: String
+  chunkCount: Int
+  textLength: Int
+  processingTime: Float
+}
+
+type Document {
+  id: ID!
+  userId: String!
+  filename: String!
+  uploadDate: AWSDateTime!
+  chunkCount: Int
+  textLength: Int
+  status: String
+  syncStatus: String
+  fileSize: Int
+  contentType: String
+  knowledgeBaseId: String
+  dataSourceId: String
+  lastModified: AWSDateTime
+  errorMessage: String
+  message: String
+  s3Key: String
+}
+
+type DocumentSearchResult {
+  documents: [Document!]!
+  totalCount: Int!
+}
+
+type Query {
+  listPresentations: [Presentation!]!
+  getPresentation(id: ID!): Presentation
+  getUserDocuments: [Document!]!
+  searchDocuments(query: String!): DocumentSearchResult!
+  getS3VectorsStats: S3VectorsStats
+  getUserKnowledgeBase: UserKnowledgeBase
+}
+
+type SlideImprovementResult {
+  success: Boolean!
+  improvedContent: String!
+  originalContent: String!
+  improvementSuggestions: [String!]!
+  message: String!
+}
+
+type RAGGenerationResult {
+  title: String!
+  slides: [String!]!
+  success: Boolean!
+  message: String!
+  contextUsed: Boolean!
+  sources: [String!]!
+  relevantChunksCount: Int!
+  presentationId: String
+  error: String
+  waitingForDocuments: Boolean
+  processingDocuments: [String!]
+}
+
+type Mutation {
+  createPresentation(input: CreatePresentationInput!): Presentation!
+  updatePresentation(id: ID!, input: UpdatePresentationInput!): Presentation!
+  deletePresentation(id: ID!): Boolean!
+  generatePresentationWithAI(prompt: String!, title: String): AIGenerationResult!
+  generatePresentationWithRAG(prompt: String!, title: String!, documentIds: [String!], slideCount: Int): RAGGenerationResult!
+  improveSlideWithAI(presentationId: String!, slideIndex: Int!, currentContent: String!, context: String): SlideImprovementResult!
+  smartTemplateMerge(templateContent: String!, existingContent: String!, templateName: String!): SmartTemplateMergeResult!
+  uploadDocument(filename: String!, fileContent: String!): DocumentUploadResult!
+  processS3Document(s3Key: String!, filename: String!, userId: String!): DocumentUploadResult!
+  generateUploadUrl(filename: String!, contentType: String!): String!
+  deleteDocument(documentId: ID!): Boolean!
+}
+
+type S3VectorsStats {
+  totalVectors: Int!
+  totalDocuments: Int!
+  vectorBucketName: String!
+  indexName: String!
+  knowledgeBaseId: String!
+}
+
+type UserKnowledgeBase {
+  knowledgeBaseId: String!
+  dataSourceId: String!
+  vectorBucketName: String!
+  status: String!
+  documentCount: Int!
+}
+
+type SmartTemplateMergeResult {
+  success: Boolean!
+  mergedContent: String
+  message: String
+  improvementSuggestions: [String!]
+}

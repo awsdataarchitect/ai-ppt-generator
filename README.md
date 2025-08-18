@@ -96,7 +96,7 @@
 - **AI Engine**: Amazon Bedrock Nova Pro + Titan embeddings
 - **Storage**: S3 for documents and presentations
 - **Hosting**: AWS Amplify with CI/CD
-- **S3 Vectors Support**: Lambda layer `bedrock-layer:1` with boto3>=1.35.0
+- **S3 Vectors Support**: Lambda layer `bedrock-layer:1` with boto3 1.40.11+
 
 ### **Key Architectural Changes (v3.0)**
 ✅ **Perfect User Isolation**: Each user gets their own Knowledge Base and S3 Vector bucket  
@@ -109,19 +109,19 @@
 
 ### **Lambda Layer Implementation**
 - **Layer**: `arn:aws:lambda:us-east-1:283023040015:layer:bedrock-layer:1`
-- **Boto3 Version**: >=1.35.0 (supports S3 Vectors)
+- **Boto3 Version**: 1.40.11 (supports S3 Vectors)
 - **S3 Vectors Client**: Available in Knowledge Base Manager Lambda function
 - **Reused Code**: All S3 Vectors logic from custom resource preserved in Knowledge Base Manager  
 
 ### **🔧 Bedrock Layer Build Requirements**
 
-**CRITICAL**: The bedrock-layer must be built and published **before** deploying the CDK stack. This layer provides the required boto3>=1.35.0 for S3 Vectors support.
+**CRITICAL**: The bedrock-layer must be built and published **before** deploying the CDK stack. This layer provides boto3 1.40.11+ required for S3 Vectors support.
 
 #### **Layer Contents**
 ```
 bedrock-layer/python/
-├── boto3/                 # AWS SDK for Python (>=1.35.0)
-├── botocore/             # Core AWS library with S3 Vectors support
+├── boto3/                 # AWS SDK for Python (1.40.11+)
+├── botocore/             # Core AWS library with S3 Vectors support (1.40.11+)
 ├── s3transfer/           # S3 transfer utilities
 ├── urllib3/              # HTTP library
 ├── jmespath/             # JSON query language
@@ -776,8 +776,8 @@ mkdir -p bedrock-layer/python
 
 # Create requirements.txt for S3 Vectors support
 cat > bedrock-layer/requirements.txt << 'EOF'
-boto3>=1.35.0
-botocore>=1.35.0
+boto3>=1.40.0
+botocore>=1.40.0
 s3transfer>=0.13.0
 urllib3>=2.0.0
 jmespath>=1.0.0
@@ -791,7 +791,7 @@ pip install -r bedrock-layer/requirements.txt -t bedrock-layer/python/
 # Create and publish the Lambda layer
 aws lambda publish-layer-version \
     --layer-name bedrock-layer \
-    --description "Bedrock layer with boto3>=1.35.0 for S3 Vectors support" \
+    --description "Bedrock layer with boto3>=1.40.0 for S3 Vectors support" \
     --zip-file fileb://<(cd bedrock-layer && zip -r - .) \
     --compatible-runtimes python3.11 python3.12 \
     --compatible-architectures x86_64
@@ -801,7 +801,8 @@ aws lambda publish-layer-version \
 
 **Important Notes:**
 - This creates `bedrock-layer:1` which is referenced in the CDK stack
-- The layer provides boto3>=1.35.0 required for S3 Vectors support
+- The layer provides boto3 1.40.11+ required for S3 Vectors support
+- **Version Verification**: S3 Vectors support was added in boto3 1.40.x series (not available in 1.34.x)
 - This is a **one-time setup** - the layer persists across deployments
 - If you need to update the layer, increment the version number in CDK
 
@@ -1192,7 +1193,7 @@ aws lambda list-layer-versions --layer-name bedrock-layer
 # If layer doesn't exist, build it first (see Quick Start step 3)
 cd infrastructure
 mkdir -p bedrock-layer/python
-pip install boto3>=1.35.0 botocore>=1.35.0 -t bedrock-layer/python/
+pip install boto3>=1.40.0 botocore>=1.40.0 -t bedrock-layer/python/
 aws lambda publish-layer-version --layer-name bedrock-layer --zip-file fileb://<(cd bedrock-layer && zip -r - .)
 
 # Update CDK stack with correct layer version

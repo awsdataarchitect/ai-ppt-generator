@@ -113,6 +113,31 @@
 - **S3 Vectors Client**: Available in Knowledge Base Manager Lambda function
 - **Reused Code**: All S3 Vectors logic from custom resource preserved in Knowledge Base Manager  
 
+### **🔧 Bedrock Layer Build Requirements**
+
+**CRITICAL**: The bedrock-layer must be built and published **before** deploying the CDK stack. This layer provides the required boto3>=1.35.0 for S3 Vectors support.
+
+#### **Layer Contents**
+```
+bedrock-layer/python/
+├── boto3/                 # AWS SDK for Python (>=1.35.0)
+├── botocore/             # Core AWS library with S3 Vectors support
+├── s3transfer/           # S3 transfer utilities
+├── urllib3/              # HTTP library
+├── jmespath/             # JSON query language
+├── dateutil/             # Date utilities
+└── six.py                # Python 2/3 compatibility
+```
+
+#### **Build Process**
+The layer is built using pip install with the `-t` flag to install packages directly into the `python/` directory structure required by AWS Lambda layers.
+
+#### **Version Management**
+- **Current Version**: `bedrock-layer:1`
+- **CDK Reference**: Hardcoded in `ai-ppt-complete-stack.ts`
+- **Update Process**: Increment version number in both layer creation and CDK stack
+- **Persistence**: Layer persists across CDK deployments once created
+
 ### **Deployment Flow (v3.0)**
 1. **CDK Deploy**: Creates infrastructure (tables, Lambda functions, IAM roles) - **NO Knowledge Base created**
 2. **User Signs Up**: User account created in Cognito
@@ -741,7 +766,46 @@ cp .env.example .env
 # Edit .env with your AWS account details
 ```
 
-### 3. Deploy Infrastructure
+### 3. **CRITICAL: Build Bedrock Layer (One-Time Setup)**
+```bash
+# Navigate to infrastructure directory
+cd infrastructure
+
+# Create bedrock-layer directory structure
+mkdir -p bedrock-layer/python
+
+# Create requirements.txt for S3 Vectors support
+cat > bedrock-layer/requirements.txt << 'EOF'
+boto3>=1.35.0
+botocore>=1.35.0
+s3transfer>=0.13.0
+urllib3>=2.0.0
+jmespath>=1.0.0
+python-dateutil>=2.9.0
+six>=1.17.0
+EOF
+
+# Install dependencies to the layer
+pip install -r bedrock-layer/requirements.txt -t bedrock-layer/python/
+
+# Create and publish the Lambda layer
+aws lambda publish-layer-version \
+    --layer-name bedrock-layer \
+    --description "Bedrock layer with boto3>=1.35.0 for S3 Vectors support" \
+    --zip-file fileb://<(cd bedrock-layer && zip -r - .) \
+    --compatible-runtimes python3.11 python3.12 \
+    --compatible-architectures x86_64
+
+# Note the LayerVersionArn from the output - you'll need this for CDK
+```
+
+**Important Notes:**
+- This creates `bedrock-layer:1` which is referenced in the CDK stack
+- The layer provides boto3>=1.35.0 required for S3 Vectors support
+- This is a **one-time setup** - the layer persists across deployments
+- If you need to update the layer, increment the version number in CDK
+
+### 4. Deploy Infrastructure
 ```bash
 cd infrastructure
 npm install
@@ -1116,6 +1180,24 @@ After deployment, verify the system is working:
 ## 🔍 TROUBLESHOOTING
 
 ### Common Issues
+
+#### 0. Bedrock Layer Issues
+**Symptoms**: CDK deployment fails with layer not found or S3 Vectors client unavailable
+
+**Solutions**:
+```bash
+# Verify layer exists
+aws lambda list-layer-versions --layer-name bedrock-layer
+
+# If layer doesn't exist, build it first (see Quick Start step 3)
+cd infrastructure
+mkdir -p bedrock-layer/python
+pip install boto3>=1.35.0 botocore>=1.35.0 -t bedrock-layer/python/
+aws lambda publish-layer-version --layer-name bedrock-layer --zip-file fileb://<(cd bedrock-layer && zip -r - .)
+
+# Update CDK stack with correct layer version
+# Edit infrastructure/lib/ai-ppt-complete-stack.ts if needed
+```
 
 #### 1. Knowledge Base Sync Failures
 **Symptoms**: Documents uploaded but not searchable

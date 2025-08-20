@@ -3,7 +3,7 @@ type Presentation {
   userId: String!
   title: String!
   description: String
-  slides: String!
+  content: [String!]
   theme: String
   contextUsed: Boolean
   sources: String
@@ -21,7 +21,7 @@ enum PresentationStatus {
 input CreatePresentationInput {
   title: String!
   description: String
-  slides: String!
+  content: [String!]
   theme: String
   contextUsed: Boolean
   sources: String
@@ -31,13 +31,13 @@ input CreatePresentationInput {
 input UpdatePresentationInput {
   title: String
   description: String
-  slides: [String!]
+  content: [String!]
   status: PresentationStatus
 }
 
 type AIGenerationResult {
   title: String!
-  slides: [String!]!
+  content: [String!]!
   success: Boolean!
   message: String!
 }
@@ -94,7 +94,7 @@ type SlideImprovementResult {
 
 type RAGGenerationResult {
   title: String!
-  slides: [String!]!
+  content: [String!]!
   success: Boolean!
   message: String!
   contextUsed: Boolean!

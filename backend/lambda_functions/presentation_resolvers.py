@@ -109,21 +109,30 @@ def list_presentations(event, context):
         # Convert DynamoDB format to GraphQL format
         formatted_presentations = []
         for item in presentations:
-            # Handle both 'content' and 'slides' field names for backward compatibility
-            slides_data = item.get('content', item.get('slides', []))
+            # Use only 'content' field - clean and consistent
+            content_data = item.get('content', [])
             
-            # Convert slides data to string format for GraphQL
-            if isinstance(slides_data, list):
-                slides_json = json.dumps(slides_data)
+            # Ensure content is always a list for GraphQL array type
+            if isinstance(content_data, list):
+                content_array = content_data
+            elif isinstance(content_data, str):
+                # Try to parse JSON string back to array
+                try:
+                    content_array = json.loads(content_data)
+                    if not isinstance(content_array, list):
+                        content_array = [str(content_data)]
+                except json.JSONDecodeError:
+                    # Split string by common separators
+                    content_array = content_data.split('---') if content_data else []
             else:
-                slides_json = str(slides_data) if slides_data else "[]"
+                content_array = []
             
             formatted_presentations.append({
                 'id': item['id'],
                 'userId': item['userId'],
                 'title': item['title'],
                 'description': item.get('description', ''),
-                'slides': slides_json,  # Convert to string for GraphQL
+                'content': content_array,  # Single clean field
                 'theme': item.get('theme', 'default'),
                 'contextUsed': item.get('contextUsed', False),
                 'sources': json.dumps(item.get('sources', [])) if isinstance(item.get('sources'), list) else str(item.get('sources', '[]')),
@@ -160,7 +169,7 @@ def create_presentation(event, context):
             'userId': user_id,
             'title': input_data.get('title', 'Untitled Presentation'),
             'description': input_data.get('description', ''),
-            'slides': input_data.get('slides', []),
+            'content': input_data.get('content', []),  # Single clean field
             'createdAt': current_time,
             'updatedAt': current_time,
             'status': 'DRAFT'
@@ -202,26 +211,52 @@ def update_presentation(event, context):
             update_expression += ", description = :description"
             expression_values[':description'] = input_data['description']
             
-        if 'slides' in input_data:
-            update_expression += ", slides = :slides"
-            expression_values[':slides'] = input_data['slides']
+        if 'content' in input_data:
+            update_expression += ", content = :content"
+            content_data = input_data['content']
+            
+            # Log content data structure for debugging
+            logger.info(f"BACKEND: Processing content data - Type: {type(content_data)}, Length: {len(content_data) if isinstance(content_data, (list, str)) else 'N/A'}")
+            if isinstance(content_data, list):
+                logger.info(f"BACKEND: Content array has {len(content_data)} elements")
+                for i, slide in enumerate(content_data[:3]):  # Log first 3 slides
+                    logger.info(f"BACKEND: Slide {i+1} preview: {str(slide)[:100]}...")
+            elif isinstance(content_data, str):
+                logger.info(f"BACKEND: Content is string with length {len(content_data)}, preview: {content_data[:100]}...")
+            
+            expression_values[':content'] = content_data
             
         if 'status' in input_data:
             update_expression += ", #status = :status"
             expression_values[':status'] = input_data['status']
         
+        # Build update parameters
+        update_params = {
+            'Key': {'id': presentation_id},
+            'UpdateExpression': update_expression,
+            'ConditionExpression': 'userId = :userId',
+            'ExpressionAttributeValues': expression_values,
+            'ReturnValues': 'ALL_NEW'
+        }
+        
+        # Only add ExpressionAttributeNames when actually needed
+        if 'status' in input_data:
+            update_params['ExpressionAttributeNames'] = {'#status': 'status'}
+        
+        # PRECISE LOGGING: Log exactly what we're about to send to DynamoDB
+        logger.info(f"BACKEND: About to call update_item with params: {update_params}")
+        logger.info(f"BACKEND: presentation_id = {presentation_id}")
+        logger.info(f"BACKEND: user_id = {user_id}")
+        logger.info(f"BACKEND: input_data keys = {list(input_data.keys())}")
+        
         # Update item in DynamoDB
-        response = presentations_table.update_item(
-            Key={'id': presentation_id},
-            UpdateExpression=update_expression,
-            ConditionExpression='userId = :userId',
-            ExpressionAttributeValues=expression_values,
-            ExpressionAttributeNames={'#status': 'status'} if 'status' in input_data else None,
-            ReturnValues='ALL_NEW'
-        )
+        logger.info("BACKEND: Calling presentations_table.update_item...")
+        response = presentations_table.update_item(**update_params)
+        logger.info(f"BACKEND: update_item SUCCESS - response: {response}")
         
         # Format datetime fields for GraphQL
         updated_item = response['Attributes']
+        logger.info(f"BACKEND: Returning updated_item with {len(updated_item)} attributes")
         updated_item['createdAt'] = format_datetime_for_graphql(updated_item.get('createdAt'))
         updated_item['updatedAt'] = format_datetime_for_graphql(updated_item.get('updatedAt'))
         

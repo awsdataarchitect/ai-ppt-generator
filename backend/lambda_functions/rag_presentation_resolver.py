@@ -113,7 +113,7 @@ class RAGPresentationGenerator:
             logger.warning(f"⚠️ Failed to update document statuses (non-critical): {e}")
             # Don't fail the presentation generation if status update fails
     
-    def generate_presentation_with_context(self, prompt: str, document_ids: List[str] = None) -> Dict[str, Any]:
+    def generate_presentation_with_context(self, prompt: str, document_ids: List[str] = None, slide_count: int = 7) -> Dict[str, Any]:
         """Generate presentation using context from user's documents"""
         try:
             # CRITICAL FIX: Update document statuses before querying
@@ -142,11 +142,11 @@ class RAGPresentationGenerator:
                 logger.warning(f"No relevant context found for prompt: {prompt}")
             
             # Generate presentation using Bedrock with context
-            presentation_slides = self._generate_slides_with_bedrock(prompt, context_text)
+            presentation_slides = self._generate_content_with_bedrock(prompt, context_text, slide_count)
             
             return {
                 "success": True,
-                "slides": presentation_slides,
+                "content": presentation_slides,
                 "sources": sources,
                 "context_chunks_used": len(relevant_chunks),
                 "context_used": len(relevant_chunks) > 0,
@@ -158,7 +158,7 @@ class RAGPresentationGenerator:
             return {
                 "success": False,
                 "message": str(e),
-                "slides": [],
+                "content": [],
                 "sources": [],
                 "context_chunks_used": 0,
                 "context_used": False
@@ -240,34 +240,34 @@ Generate only the title, nothing else. Make it professional and specific."""
         # Capitalize properly
         return cleaned.title()
 
-    def _generate_slides_with_bedrock(self, prompt: str, context: str) -> List[str]:
-        """Generate presentation slides using Bedrock Nova Pro with context"""
+    def _generate_content_with_bedrock(self, prompt: str, context: str, slide_count: int = 7) -> List[str]:
+        """Generate presentation content using Bedrock Nova Pro with context"""
         
-        # Build prompt with context
+        # Build prompt with context and dynamic slide count
         if context:
             bedrock_prompt = f"""Based on the following context from uploaded documents, create a comprehensive presentation about "{prompt}".
 
 Context from documents:
 {context}
 
-Create a presentation with 5-7 slides. Each slide should be a separate, complete slide with a title and content.
+Create a presentation with exactly {slide_count} slides. Each slide should be a separate, complete slide with a title and content.
 Format each slide as follows:
 - Start with "Slide X: [Title]"
 - Follow with bullet points or paragraphs for the slide content
 - Keep each slide focused and informative
 - Use the context information to make the presentation accurate and detailed
 
-Generate the presentation now:"""
+Generate exactly {slide_count} slides now:"""
         else:
             bedrock_prompt = f"""Create a comprehensive presentation about "{prompt}".
 
-Create a presentation with 5-7 slides. Each slide should be a separate, complete slide with a title and content.
+Create a presentation with exactly {slide_count} slides. Each slide should be a separate, complete slide with a title and content.
 Format each slide as follows:
 - Start with "Slide X: [Title]"
 - Follow with bullet points or paragraphs for the slide content
 - Keep each slide focused and informative
 
-Generate the presentation now:"""
+Generate exactly {slide_count} slides now:"""
         
         try:
             # Call Bedrock Nova Pro
@@ -406,11 +406,14 @@ def generate_presentation_with_rag(event, rag_service, user_id):
         prompt = arguments.get('prompt', '')
         title = arguments.get('title', '')
         document_ids = arguments.get('documentIds', [])
+        slide_count = arguments.get('slideCount', 7)  # Extract slideCount with default 7
+        
+        logger.info(f"RAG Generation Request - Prompt: {prompt}, SlideCount: {slide_count}, DocumentIds: {len(document_ids)}")
         
         if not prompt:
             return {
                 "title": title or "Untitled Presentation",
-                "slides": [],
+                "content": [],
                 "success": False,
                 "message": "Prompt is required",
                 "contextUsed": False,
@@ -459,7 +462,7 @@ def generate_presentation_with_rag(event, rag_service, user_id):
             if processing_docs:
                 return {
                     "title": title or "Untitled Presentation",
-                    "slides": [],
+                    "content": [],
                     "success": False,
                     "message": f"⏳ Please wait - {len(processing_docs)} document(s) are still being processed and indexed in your Knowledge Base. This usually takes 1-2 minutes. Documents: {', '.join(processing_docs[:3])}{'...' if len(processing_docs) > 3 else ''}",
                     "contextUsed": False,
@@ -474,7 +477,7 @@ def generate_presentation_with_rag(event, rag_service, user_id):
         generator = RAGPresentationGenerator(user_id)
         
         # Generate presentation with context using the prompt and document IDs
-        result = generator.generate_presentation_with_context(prompt, document_ids)
+        result = generator.generate_presentation_with_context(prompt, document_ids, slide_count)
         
         if result.get('success'):
             # Generate intelligent title if not provided
@@ -493,10 +496,10 @@ def generate_presentation_with_rag(event, rag_service, user_id):
                         'id': presentation_id,
                         'userId': user_id,
                         'title': title,
-                        'content': result.get('slides', []),
+                        'content': result.get('content', []),
                         'sources': result.get('sources', []),
                         'contextChunksUsed': result.get('context_chunks_used', 0),
-                        'slideCount': len(result.get('slides', [])),
+                        'slideCount': len(result.get('content', [])),
                         'createdAt': datetime.utcnow().isoformat() + 'Z',  # Consistent format with Z
                         'updatedAt': datetime.utcnow().isoformat() + 'Z'   # Consistent format with Z
                     }
@@ -505,7 +508,7 @@ def generate_presentation_with_rag(event, rag_service, user_id):
             # Return GraphQL schema-compliant structure
             return {
                 "title": title,
-                "slides": result.get('slides', []),
+                "content": result.get('content', []),
                 "success": True,
                 "message": result.get('message', 'Presentation generated successfully'),
                 "contextUsed": result.get('context_used', True),
@@ -516,7 +519,7 @@ def generate_presentation_with_rag(event, rag_service, user_id):
         else:
             return {
                 "title": title or generator._clean_prompt_as_title(prompt),
-                "slides": [],
+                "content": [],
                 "success": False,
                 "message": result.get('message', 'Failed to generate presentation'),
                 "contextUsed": False,
@@ -529,7 +532,7 @@ def generate_presentation_with_rag(event, rag_service, user_id):
         logger.error(f"Failed to generate presentation with RAG: {e}")
         return {
             "title": arguments.get('title') or RAGPresentationGenerator(user_id)._clean_prompt_as_title(arguments.get('prompt', 'Error')),
-            "slides": [],
+            "content": [],
             "success": False,
             "message": f"Error generating presentation: {str(e)}",
             "contextUsed": False,

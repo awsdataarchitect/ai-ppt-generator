@@ -87,6 +87,26 @@ class AuthService {
         }
     }
 
+    async getAccessToken() {
+        try {
+            const session = await fetchAuthSession();
+            return session.tokens?.accessToken?.toString();
+        } catch (error) {
+            console.error('Error getting access token:', error);
+            throw error;
+        }
+    }
+
+    async getCurrentUser() {
+        try {
+            const user = await getCurrentUser();
+            return user;
+        } catch (error) {
+            console.log('No authenticated user found');
+            throw error;
+        }
+    }
+
     async getCurrentAuthState() {
         try {
             const user = await getCurrentUser();

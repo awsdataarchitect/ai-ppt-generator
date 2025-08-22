@@ -120,9 +120,7 @@ class KnowledgeBaseManager:
                     "dataType": "float32",
                     "dimension": 1024,  # Titan Embed Text v2 uses 1024 dimensions
                     "distanceMetric": "cosine",
-                    "metadataConfiguration": {
-                        "nonFilterableMetadataKeys": ["AMAZON_BEDROCK_TEXT"]  # Critical for Bedrock KB integration
-                    }
+                    "metadataConfiguration": {"nonFilterableMetadataKeys": ["AMAZON_BEDROCK_TEXT"]}  # CRITICAL for Bedrock KB integration
                 }
                 
                 logger.info(f"Index config: {json.dumps(index_config, indent=2)}")
@@ -153,6 +151,12 @@ class KnowledgeBaseManager:
                     'type': 'VECTOR',
                     'vectorKnowledgeBaseConfiguration': {
                         'embeddingModelArn': 'arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0',
+                        'embeddingModelConfiguration': {
+                            'bedrockEmbeddingModelConfiguration': {
+                                'dimensions': 1024,  # Must match S3 vector index configuration
+                                'embeddingDataType': 'FLOAT32'
+                            }
+                        },
                     },
                 },
                 'storageConfiguration': {
@@ -450,38 +454,88 @@ class KnowledgeBaseManager:
             # Step 1: Create user's Knowledge Base
             user_kb_info = self._create_user_kb(user_id)
             
-            # Step 2: Handle document location - check if file is in pending or already in final location
+            # Step 2: Handle document location - check final location first, then temp
             user_hash = user_kb_info['user_hash']
-            final_s3_key = f"docs/{user_hash}/{document_id}/{filename}"  # Fix: Use docs/ prefix
+            final_s3_key = f"docs/{user_hash}/{document_id}/{filename}"
             
             import boto3
             s3 = boto3.client('s3')
             documents_bucket = os.environ.get('DOCUMENTS_BUCKET')
             
-            # Check if file exists in temp location (pending scenario)
-            try:
-                s3.head_object(Bucket=documents_bucket, Key=temp_s3_key)
-                logger.info(f"File found in temp location: {temp_s3_key}")
-                
-                # Copy document from temp to final location
-                s3.copy_object(
-                    Bucket=documents_bucket,
-                    CopySource={'Bucket': documents_bucket, 'Key': temp_s3_key},
-                    Key=final_s3_key
-                )
-                
-                # Delete temp file
-                s3.delete_object(Bucket=documents_bucket, Key=temp_s3_key)
-                logger.info(f"Moved document from {temp_s3_key} to {final_s3_key}")
-                
-            except s3.exceptions.NoSuchKey:
-                # File not in temp location, check if it's already in final location
+            # Retry mechanism for S3 eventual consistency
+            max_retries = 3
+            retry_delay = 1  # Start with 1 second
+            
+            file_found = False
+            actual_s3_key = None
+            
+            # First, check if file is already in final location (most common case)
+            logger.info(f"Checking final location: {final_s3_key}")
+            for attempt in range(max_retries):
                 try:
                     s3.head_object(Bucket=documents_bucket, Key=final_s3_key)
-                    logger.info(f"File already exists in final location: {final_s3_key}")
+                    logger.info(f"File found in final location: {final_s3_key}")
+                    file_found = True
+                    actual_s3_key = final_s3_key
+                    break
                 except s3.exceptions.NoSuchKey:
-                    # File doesn't exist anywhere - this is an error
-                    raise Exception(f"Document not found in temp location ({temp_s3_key}) or final location ({final_s3_key})")
+                    if attempt < max_retries - 1:
+                        logger.info(f"Final file not found, retrying in {retry_delay} seconds (attempt {attempt + 1}/{max_retries})")
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
+                    else:
+                        logger.info(f"Final file not found after {max_retries} attempts")
+                except Exception as e:
+                    logger.error(f"Error checking final file (attempt {attempt + 1}): {e}")
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        retry_delay *= 2
+                    else:
+                        logger.error(f"Failed to check final file after {max_retries} attempts: {e}")
+            
+            # If not found in final location, check temp location
+            if not file_found:
+                logger.info(f"Checking temp location: {temp_s3_key}")
+                retry_delay = 1  # Reset delay
+                for attempt in range(max_retries):
+                    try:
+                        s3.head_object(Bucket=documents_bucket, Key=temp_s3_key)
+                        logger.info(f"File found in temp location: {temp_s3_key}")
+                        file_found = True
+                        actual_s3_key = temp_s3_key
+                        
+                        # Move from temp to final location
+                        s3.copy_object(
+                            Bucket=documents_bucket,
+                            CopySource={'Bucket': documents_bucket, 'Key': temp_s3_key},
+                            Key=final_s3_key
+                        )
+                        
+                        # Delete temp file
+                        s3.delete_object(Bucket=documents_bucket, Key=temp_s3_key)
+                        logger.info(f"Moved document from {temp_s3_key} to {final_s3_key}")
+                        actual_s3_key = final_s3_key
+                        break
+                    except s3.exceptions.NoSuchKey:
+                        if attempt < max_retries - 1:
+                            logger.info(f"Temp file not found, retrying in {retry_delay} seconds (attempt {attempt + 1}/{max_retries})")
+                            time.sleep(retry_delay)
+                            retry_delay *= 2  # Exponential backoff
+                        else:
+                            logger.info(f"Temp file not found after {max_retries} attempts")
+                    except Exception as e:
+                        logger.error(f"Error checking temp file (attempt {attempt + 1}): {e}")
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            retry_delay *= 2
+                        else:
+                            raise Exception(f"Failed to check temp file after {max_retries} attempts: {e}")
+            
+            if not file_found:
+                # File doesn't exist anywhere - this is an error
+                raise Exception(f"Document not found in final location ({final_s3_key}) or temp location ({temp_s3_key}) after retries")
+            
+            logger.info(f"Document confirmed at: {actual_s3_key}")
             
             # Step 3: Update document metadata in DynamoDB
             documents_table = boto3.resource('dynamodb').Table(os.environ.get('DOCUMENTS_TABLE_NAME', 'ai-ppt-documents'))
@@ -580,7 +634,11 @@ class KnowledgeBaseManager:
             # Get user's KB info
             user_kb = self._get_user_kb_from_db(user_id)
             if not user_kb:
-                return {'error': 'No Knowledge Base found for user'}
+                return {
+                    'success': True,
+                    'updated_documents': 0,
+                    'message': 'No Knowledge Base found for user - KB may still be creating'
+                }
             
             kb_id = user_kb['knowledge_base_id']
             ds_id = user_kb['data_source_id']
@@ -601,14 +659,18 @@ class KnowledgeBaseManager:
                 
                 if status == 'COMPLETE':
                     # Find documents with this ingestion job ID and update their status
+                    # Include 'failed' status to catch documents that failed due to ingestion conflicts
                     try:
                         # Query documents by ingestion_job_id (would need GSI, so scan for now)
+                        # Exclude batch records by ensuring document has required fields
                         scan_response = documents_table.scan(
-                            FilterExpression='ingestion_job_id = :job_id AND sync_status IN (:processing_status, :syncing_status)',
+                            FilterExpression='ingestion_job_id = :job_id AND sync_status IN (:processing_status, :syncing_status, :failed_status, :ready_status) AND attribute_exists(filename) AND attribute_exists(user_id)',
                             ExpressionAttributeValues={
                                 ':job_id': job_id,
                                 ':processing_status': 'processing',
-                                ':syncing_status': 'syncing'  # Handle both status values
+                                ':syncing_status': 'syncing',
+                                ':failed_status': 'failed',  # Include failed status for ingestion conflicts
+                                ':ready_status': 'ready_for_ingestion'  # Include ready_for_ingestion status
                             }
                         )
                         
@@ -654,6 +716,53 @@ class KnowledgeBaseManager:
                     except Exception as e:
                         logger.error(f"Failed to update failed documents for job {job_id}: {e}")
             
+            # Also check for documents that might not have ingestion_job_id due to conflicts
+            # but are associated with this Knowledge Base and might need status updates
+            try:
+                # Find documents for this user that are in failed/syncing status but don't have ingestion_job_id
+                scan_response = documents_table.scan(
+                    FilterExpression='user_id = :user_id AND sync_status IN (:failed_status, :syncing_status) AND attribute_not_exists(ingestion_job_id)',
+                    ExpressionAttributeValues={
+                        ':user_id': user_id,
+                        ':failed_status': 'failed',
+                        ':syncing_status': 'syncing'
+                    }
+                )
+                
+                # Check if any recent ingestion jobs completed successfully
+                recent_completed_jobs = [job for job in response.get('ingestionJobSummaries', []) if job['status'] == 'COMPLETE']
+                
+                if recent_completed_jobs and scan_response.get('Items'):
+                    logger.info(f"Found {len(scan_response['Items'])} documents without ingestion_job_id and {len(recent_completed_jobs)} completed jobs")
+                    
+                    # Update documents that are likely associated with completed jobs
+                    for item in scan_response.get('Items', []):
+                        # Check if document was uploaded recently (within last hour of any completed job)
+                        doc_upload_time = datetime.fromisoformat(item['upload_date'].replace('Z', '+00:00'))
+                        
+                        for job in recent_completed_jobs:
+                            job_start_time = job['startedAt'].replace(tzinfo=None)
+                            time_diff = abs((job_start_time - doc_upload_time.replace(tzinfo=None)).total_seconds())
+                            
+                            # If document was uploaded within 10 minutes of job start, likely related
+                            if time_diff <= 600:  # 10 minutes
+                                documents_table.update_item(
+                                    Key={'document_id': item['document_id']},
+                                    UpdateExpression='SET sync_status = :status, message = :message, last_modified = :timestamp, ingestion_job_id = :job_id',
+                                    ExpressionAttributeValues={
+                                        ':status': 'completed',
+                                        ':message': 'Document successfully indexed in Knowledge Base',
+                                        ':timestamp': datetime.utcnow().isoformat(),
+                                        ':job_id': job['ingestionJobId']
+                                    }
+                                )
+                                updated_count += 1
+                                logger.info(f"Updated orphaned document {item['document_id']} status to completed (matched with job {job['ingestionJobId']})")
+                                break
+                                
+            except Exception as e:
+                logger.error(f"Failed to update orphaned documents: {e}")
+            
             return {
                 'success': True,
                 'updated_documents': updated_count,
@@ -662,7 +771,11 @@ class KnowledgeBaseManager:
             
         except Exception as e:
             logger.error(f"Failed to check ingestion status for user {user_id}: {e}")
-            return {'error': str(e)}
+            return {
+                'success': False,
+                'updated_documents': 0,
+                'message': f'Error: {str(e)}'
+            }
 
 def lambda_handler(event, context):
     """

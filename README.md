@@ -629,12 +629,10 @@ s3vectors.create_index(
 s3vectors.create_index(
     vectorBucketName=bucket_name,
     indexName=index_name,
-    dataType="float32",
     dimension=1024,
     distanceMetric="cosine",
-    metadataConfiguration={
-        "nonFilterableMetadataKeys": ["AMAZON_BEDROCK_TEXT"]  # CRITICAL for Bedrock KB
-    }
+    dataType="float32",
+    metadataConfiguration={"nonFilterableMetadataKeys": ["AMAZON_BEDROCK_TEXT"]}  # CRITICAL for Bedrock KB
 )
 ```
 
@@ -1885,6 +1883,15 @@ If application-level user isolation proves insufficient, consider reverting to *
 ---
 
 ## 📝 CHANGELOG
+
+### v3.6 - Critical Status Update Mechanism Fix (August 2025)
+- 🔧 **CRITICAL STATUS UPDATE FIX**: Fixed automatic document status updates after ingestion job completion
+- ✅ **Ingestion Conflict Handling**: Status update now handles documents marked as "failed" due to ingestion job conflicts
+- ✅ **Orphaned Document Recovery**: Added fallback mechanism for documents without ingestion_job_id due to conflicts
+- ✅ **Timestamp-Based Matching**: Documents matched to completed jobs based on upload time proximity
+- ✅ **Complete Status Flow**: Documents now automatically update from "failed" → "completed" when ingestion succeeds
+- ✅ **No Manual Intervention**: Eliminated need for manual DynamoDB updates
+- 📚 **Root Cause**: Ingestion job conflicts prevented ingestion_job_id storage, breaking status update chain
 
 ### v3.5 - Critical Data Consistency & Parsing Fixes (August 2025)
 - 🔧 **CRITICAL SINGLE FIELD ARCHITECTURE**: Unified data model with single `content` field

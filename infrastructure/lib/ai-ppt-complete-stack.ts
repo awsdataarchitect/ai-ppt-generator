@@ -821,6 +821,39 @@ export class AiPptCompleteStack extends cdk.Stack {
       dataSource: slideImprovementDataSource,
     });
 
+    // Create ingestion status Lambda function
+    const ingestionStatusFunction = new lambda.Function(this, 'IngestionStatusFunction', {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      handler: 'ingestion_status_resolver.lambda_handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/lambda_functions')),
+      timeout: cdk.Duration.minutes(2),
+      memorySize: 512,
+      environment: {
+        KNOWLEDGE_BASE_MANAGER_FUNCTION_NAME: knowledgeBaseManagerFunction.functionName,
+      },
+    });
+
+    // Grant permissions to ingestion status function
+    ingestionStatusFunction.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'lambda:InvokeFunction',
+      ],
+      resources: [
+        knowledgeBaseManagerFunction.functionArn,
+      ],
+    }));
+
+    // Create data source for ingestion status
+    const ingestionStatusDataSource = api.addLambdaDataSource('IngestionStatusDataSource', ingestionStatusFunction);
+
+    // Add ingestion status resolver
+    api.createResolver('checkIngestionStatusResolver', {
+      typeName: 'Mutation',
+      fieldName: 'checkIngestionStatus',
+      dataSource: ingestionStatusDataSource,
+    });
+
     // Resolvers for Standard Presentations
     api.createResolver('listPresentationsResolver', {
       typeName: 'Query',

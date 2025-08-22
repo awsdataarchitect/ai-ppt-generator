@@ -118,6 +118,13 @@ type Mutation {
   processS3Document(s3Key: String!, filename: String!, userId: String!): DocumentUploadResult!
   generateUploadUrl(filename: String!, contentType: String!): String!
   deleteDocument(documentId: ID!): Boolean!
+  checkIngestionStatus: IngestionStatusResult!
+}
+
+type IngestionStatusResult {
+  success: Boolean!
+  updatedDocuments: Int!
+  message: String!
 }
 
 type S3VectorsStats {

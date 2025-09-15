@@ -1,0 +1,24 @@
+{
+  "name": "developer-blog-content-generator",
+  "version": "1.0.0",
+  "description": "Content generation framework with Amazon 4Cs writing principles",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "generate": "node src/index.js",
+    "test": "jest --silent",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": ["blog", "content-generation", "technical-writing", "amazon-4cs"],
+  "author": "Developer",
+  "license": "MIT",
+  "dependencies": {
+    "marked": "^12.0.0",
+    "gray-matter": "^4.0.3",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11"
+  }
+}

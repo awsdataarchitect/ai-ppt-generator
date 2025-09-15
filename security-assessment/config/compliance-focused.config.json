@@ -1,0 +1,109 @@
+{
+  "projectName": "Compliance-Focused Security Assessment",
+  "targetPath": "../",
+  "outputDirectory": "./compliance-reports",
+  "enabledScanners": [
+    "frontend",
+    "backend",
+    "infrastructure",
+    "dependencies",
+    "dataflow",
+    "deployment"
+  ],
+  "parallelExecution": false,
+  "timeoutPerScanner": 600000,
+  "reportFormat": "markdown",
+  "generateIndividualReports": true,
+  "verboseOutput": true,
+  "scannerConfigurations": {
+    "frontend": {
+      "checkXSS": true,
+      "checkCSRF": true,
+      "checkAuthTokens": true,
+      "checkInputValidation": true
+    },
+    "backend": {
+      "checkSQLInjection": true,
+      "checkCommandInjection": true,
+      "checkPathTraversal": true,
+      "checkInformationDisclosure": true
+    },
+    "infrastructure": {
+      "checkIAMPolicies": true,
+      "checkS3Buckets": true,
+      "checkAPIGateway": true,
+      "checkDynamoDB": true,
+      "checkCognito": true
+    },
+    "dependencies": {
+      "checkNPM": true,
+      "checkPython": true,
+      "checkCDK": true,
+      "checkLicenses": true,
+      "severityThreshold": "low"
+    },
+    "dataflow": {
+      "checkPII": true,
+      "checkGDPR": true,
+      "checkCCPA": true,
+      "checkHIPAA": true,
+      "checkMultiTenant": true
+    },
+    "deployment": {
+      "checkSecrets": true,
+      "checkEnvironment": true,
+      "checkBuildProcess": true,
+      "checkMonitoring": true,
+      "checkBackup": true,
+      "checkNetwork": true
+    }
+  },
+  "complianceFrameworks": {
+    "owasp": {
+      "enabled": true,
+      "version": "2021"
+    },
+    "nist": {
+      "enabled": true,
+      "framework": "cybersecurity"
+    },
+    "awsWellArchitected": {
+      "enabled": true,
+      "pillar": "security"
+    },
+    "soc2": {
+      "enabled": true,
+      "type": "typeII"
+    },
+    "iso27001": {
+      "enabled": true,
+      "version": "2013"
+    },
+    "regulatory": {
+      "gdpr": true,
+      "ccpa": true,
+      "hipaa": true
+    }
+  },
+  "reportOptions": {
+    "includeExecutiveSummary": true,
+    "includeDetailedFindings": true,
+    "includeRemediationSteps": true,
+    "includeComplianceMapping": true,
+    "includeRiskAssessment": true,
+    "includeMetrics": true,
+    "includeAppendices": true,
+    "customSections": [
+      "Regulatory Compliance Summary",
+      "Audit Trail",
+      "Control Effectiveness Assessment"
+    ]
+  },
+  "thresholds": {
+    "maxCriticalVulnerabilities": 0,
+    "maxHighVulnerabilities": 0,
+    "maxMediumVulnerabilities": 5,
+    "minOverallScore": 95,
+    "maxExecutionTime": 3600000
+  }
+}

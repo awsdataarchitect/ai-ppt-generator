@@ -1,0 +1,42 @@
+{
+  "name": "security-vulnerability-assessment",
+  "version": "1.0.0",
+  "description": "Comprehensive security vulnerability assessment tool for AI PPT Generator",
+  "main": "dist/index.js",
+  "bin": {
+    "security-assessment": "./bin/security-assessment"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --silent",
+    "test:cli": "jest --silent --testPathPattern=CLI",
+    "test:e2e": "jest --silent --testPathPattern=e2e",
+    "lint": "eslint src/**/*.ts",
+    "scan": "node dist/cli/SecurityAssessmentCLI.js",
+    "scan:interactive": "./bin/security-assessment --interactive",
+    "scan:quick": "./bin/security-assessment --config ./config/quick-scan.config.json",
+    "scan:compliance": "./bin/security-assessment --config ./config/compliance-focused.config.json",
+    "scan:debug": "./bin/security-assessment --debug --verbose --log-file ./debug.log"
+  },
+  "keywords": ["security", "vulnerability", "assessment", "owasp", "compliance", "cli"],
+  "author": "Security Assessment Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/fs-extra": "^11.0.0",
+    "@types/readline": "^1.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "fs-extra": "^11.0.0",
+    "glob": "^10.0.0",
+    "yaml": "^2.0.0"
+  }
+}

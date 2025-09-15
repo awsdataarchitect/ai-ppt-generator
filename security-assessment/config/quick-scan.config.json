@@ -1,0 +1,66 @@
+{
+  "projectName": "Quick Security Scan",
+  "targetPath": "../",
+  "outputDirectory": "./quick-reports",
+  "enabledScanners": [
+    "frontend",
+    "backend",
+    "dependencies"
+  ],
+  "parallelExecution": true,
+  "timeoutPerScanner": 120000,
+  "reportFormat": "markdown",
+  "generateIndividualReports": false,
+  "verboseOutput": true,
+  "scannerConfigurations": {
+    "frontend": {
+      "checkXSS": true,
+      "checkCSRF": true,
+      "checkAuthTokens": true,
+      "checkInputValidation": false
+    },
+    "backend": {
+      "checkSQLInjection": true,
+      "checkCommandInjection": true,
+      "checkPathTraversal": false,
+      "checkInformationDisclosure": false
+    },
+    "dependencies": {
+      "checkNPM": true,
+      "checkPython": true,
+      "checkCDK": false,
+      "checkLicenses": false,
+      "severityThreshold": "high"
+    }
+  },
+  "complianceFrameworks": {
+    "owasp": {
+      "enabled": true,
+      "version": "2021"
+    },
+    "nist": {
+      "enabled": false
+    },
+    "awsWellArchitected": {
+      "enabled": false
+    },
+    "soc2": {
+      "enabled": false
+    },
+    "iso27001": {
+      "enabled": false
+    },
+    "regulatory": {
+      "gdpr": false,
+      "ccpa": false,
+      "hipaa": false
+    }
+  },
+  "thresholds": {
+    "maxCriticalVulnerabilities": 0,
+    "maxHighVulnerabilities": 10,
+    "maxMediumVulnerabilities": 50,
+    "minOverallScore": 70,
+    "maxExecutionTime": 600000
+  }
+}

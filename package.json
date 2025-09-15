@@ -1,0 +1,55 @@
+{
+  "name": "ai-ppt-generator",
+  "version": "1.0.0",
+  "description": "AI-powered presentation generator with RAG capabilities and payment processing",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "infrastructure",
+    "security-assessment",
+    "blog-content-generator"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:frontend && npm run install:infrastructure",
+    "install:frontend": "cd frontend && npm install",
+    "install:infrastructure": "cd infrastructure && npm install",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "deploy": "npm run deploy:infrastructure && npm run deploy:frontend",
+    "deploy:infrastructure": "cd infrastructure && npm run deploy",
+    "deploy:frontend": "cd frontend && npm run deploy",
+    "cdk:deploy": "cd infrastructure && cdk deploy --all --require-approval never",
+    "cdk:destroy": "cd infrastructure && cdk destroy --all --force",
+    "cdk:diff": "cd infrastructure && cdk diff",
+    "cdk:synth": "cd infrastructure && cdk synth",
+    "test": "npm run test:frontend",
+    "test:frontend": "cd frontend && npm test",
+    "validate:payment": "./scripts/validate-payment-config.sh",
+    "configure:payment": "./scripts/configure-payment-secrets.sh",
+    "logs:lambda": "aws logs tail /aws/lambda/ai-ppt-stripe-webhook-handler --follow",
+    "logs:payment": "aws logs tail /aws/lambda/PaymentProcessorFunction --follow",
+    "dev:frontend": "cd frontend && npm run dev",
+    "lint": "npm run lint:frontend",
+    "lint:frontend": "cd frontend && npm run lint"
+  },
+  "keywords": [
+    "ai",
+    "presentation",
+    "generator",
+    "rag",
+    "aws",
+    "bedrock",
+    "stripe",
+    "payment",
+    "serverless"
+  ],
+  "author": "AI PPT Generator Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

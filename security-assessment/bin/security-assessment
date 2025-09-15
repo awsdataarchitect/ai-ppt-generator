@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+/**
+ * Security Assessment CLI Executable
+ * 
+ * This is the main entry point for the security assessment command-line tool.
+ * It provides a comprehensive interface for executing security vulnerability assessments.
+ */
+
+const path = require('path');
+const fs = require('fs');
+
+// Check if we're running from source or compiled
+const isSource = fs.existsSync(path.join(__dirname, '../src')) && !fs.existsSync(path.join(__dirname, '../dist'));
+const cliPath = isSource 
+  ? path.join(__dirname, '../src/cli/SecurityAssessmentCLI.ts')
+  : path.join(__dirname, '../dist/cli/SecurityAssessmentCLI.js');
+
+// For TypeScript source, we need to use ts-node
+if (isSource) {
+  require('ts-node/register');
+}
+
+// Import and run the CLI
+const { SecurityAssessmentCLI } = require(cliPath);
+
+const cli = new SecurityAssessmentCLI();
+cli.run().catch(error => {
+  console.error('Fatal CLI error:', error.message || error);
+  process.exit(1);
+});

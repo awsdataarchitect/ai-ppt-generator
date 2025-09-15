@@ -1,0 +1,197 @@
+{
+  "introduction-crisis-hook.md": {
+    "title": "From Corrupted Presentations to Revolutionary Development: A Kiro Journey | AI Development",
+    "metaDescription": "Discover how Donnie Prakoso's presentation crisis inspired a revolutionary AI-powered development approach using Kiro's spec-driven methodology. Learn workflow-first thinking that transforms complex AWS projects.",
+    "keywords": "AI development, Kiro IDE, spec-driven development, AWS Bedrock, RAG system, workflow-first development, Amazon Q CLI, serverless architecture",
+    "readingTime": "8 min read",
+    "seoScore": 85,
+    "socialMedia": {
+      "openGraph": {
+        "title": "Revolutionary AI Development with Kiro: From Crisis to Success",
+        "description": "How a presentation crisis led to discovering spec-driven development with Kiro AI. Transform your AWS projects with workflow-first thinking.",
+        "image": "https://developerblog.com/images/kiro-development-journey.jpg",
+        "type": "article"
+      },
+      "twitter": {
+        "title": "From Crisis to Revolutionary AI Development with Kiro",
+        "description": "Donnie Prakoso's presentation crisis inspired a new development approach. Learn workflow-first AI development that transforms complex projects.",
+        "hashtags": ["#AI", "#Kiro", "#AWS", "#Development", "#Serverless"]
+      },
+      "linkedin": {
+        "title": "How a Presentation Crisis Led to Revolutionary AI Development Methodology",
+        "description": "Discover the workflow-first approach to AI development that transforms complex AWS projects. Real-world case study using Kiro's spec-driven methodology for building production RAG systems."
+      },
+      "repost": {
+        "title": "Revolutionary AI Development: From Crisis to Spec-Driven Success",
+        "description": "Learn how Donnie Prakoso's presentation emergency inspired a new development methodology using Kiro AI. Complete guide to workflow-first thinking for complex AWS architectures including Bedrock Knowledge Base and S3 Vectors integration.",
+        "tags": ["AI Development", "AWS", "Kiro", "Spec-Driven Development", "RAG Systems"],
+        "category": "Developer Tools"
+      }
+    },
+    "internalLinks": [
+      {
+        "anchor": "Complete Kiro development guide",
+        "url": "/kiro-comprehensive-guide",
+        "context": "Link when mentioning Kiro's capabilities"
+      },
+      {
+        "anchor": "AWS Bedrock RAG implementation",
+        "url": "/aws-bedrock-rag-guide", 
+        "context": "Link when discussing RAG systems"
+      }
+    ],
+    "structuredData": {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "From Corrupted Presentations to Revolutionary Development: A Kiro Journey",
+      "author": {
+        "@type": "Person",
+        "name": "Developer Blog Platform"
+      },
+      "datePublished": "2025-01-26",
+      "wordCount": 1200,
+      "timeRequired": "PT8M",
+      "articleSection": "Developer Tools",
+      "keywords": "AI development, Kiro IDE, spec-driven development, AWS Bedrock"
+    }
+  },
+  "kiro-implementation-journey.md": {
+    "title": "Building AWS-Native RAG Systems with Kiro: Complete Implementation Guide",
+    "metaDescription": "Step-by-step guide to building production-ready AWS RAG systems using Kiro AI. Learn CDK infrastructure, Bedrock Knowledge Base, S3 Vectors integration, and per-user architecture patterns.",
+    "keywords": "AWS RAG system, Bedrock Knowledge Base, S3 Vectors, Kiro AI, CDK infrastructure, Lambda functions, per-user architecture, serverless development",
+    "readingTime": "12 min read",
+    "seoScore": 92,
+    "socialMedia": {
+      "openGraph": {
+        "title": "Complete Guide: Building AWS RAG Systems with Kiro AI",
+        "description": "Production-ready AWS RAG implementation using Bedrock Knowledge Base, S3 Vectors, and Kiro's AI-powered development. Includes CDK infrastructure and Lambda functions.",
+        "image": "https://developerblog.com/images/aws-rag-architecture.jpg",
+        "type": "article"
+      },
+      "twitter": {
+        "title": "AWS RAG System Implementation with Kiro AI",
+        "description": "Complete guide to building production RAG systems with Bedrock Knowledge Base, S3 Vectors, and AI-powered development workflows.",
+        "hashtags": ["#AWS", "#RAG", "#Bedrock", "#Kiro", "#AI"]
+      }
+    }
+  },
+  "spec-driven-development.md": {
+    "title": "Spec-Driven Development: Revolutionary Approach to Complex Software Projects",
+    "metaDescription": "Master spec-driven development methodology for managing complex software projects. Learn modular specs, incremental development, and fearless feature addition without breaking existing systems.",
+    "keywords": "spec-driven development, software methodology, modular development, incremental features, technical debt management, software architecture",
+    "readingTime": "10 min read",
+    "seoScore": 88
+  },
+  "kiro-hooks-automation.md": {
+    "title": "Kiro Agent Hooks: Automating Development Workflows for Maximum Efficiency",
+    "metaDescription": "Discover Kiro agent hooks for automating development workflows. Learn CDK synth automation, README spell check, and custom development automation that eliminates entire bug categories.",
+    "keywords": "Kiro hooks, development automation, workflow automation, CDK automation, development efficiency, agent hooks, automated testing",
+    "readingTime": "7 min read",
+    "seoScore": 86
+  },
+  "built-with-tech-stack.md": {
+    "title": "AWS-Native Tech Stack: Complete Architecture for AI-Powered Applications",
+    "metaDescription": "Comprehensive guide to AWS-native tech stack for AI applications. Learn Bedrock Knowledge Base, S3 Vectors, Lambda, DynamoDB, Amplify v6, and CDK infrastructure patterns.",
+    "keywords": "AWS tech stack, Bedrock Knowledge Base, S3 Vectors, AWS Lambda, DynamoDB, Amplify v6, CDK infrastructure, serverless architecture",
+    "readingTime": "9 min read",
+    "seoScore": 90
+  },
+  "try-it-out-demo.md": {
+    "title": "Live Demo: AI PPT Generator Built with Kiro and AWS Services",
+    "metaDescription": "Try the live AI PPT Generator built using Kiro's spec-driven development. Experience RAG-powered presentation generation with Bedrock Knowledge Base and S3 Vectors integration.",
+    "keywords": "AI PPT Generator demo, live demo, RAG presentation generator, Bedrock demo, S3 Vectors demo, AI presentation tool",
+    "readingTime": "5 min read",
+    "seoScore": 84
+  },
+  "platformOptimization": {
+    "twitter": {
+      "characterLimits": {
+        "title": 70,
+        "description": 200
+      },
+      "bestPractices": [
+        "Use engaging hooks in first tweet",
+        "Break complex topics into thread format",
+        "Include relevant hashtags (#AI #AWS #Kiro #Development)",
+        "Add call-to-action with demo link",
+        "Use emojis for visual appeal"
+      ]
+    },
+    "linkedin": {
+      "characterLimits": {
+        "title": 150,
+        "description": 300
+      },
+      "bestPractices": [
+        "Professional tone with personal insights",
+        "Include key takeaways as bullet points",
+        "Ask engaging questions to drive comments",
+        "Tag relevant professionals and companies",
+        "Include demo link with clear value proposition"
+      ]
+    },
+    "repost": {
+      "characterLimits": {
+        "title": 120,
+        "description": 400
+      },
+      "bestPractices": [
+        "Technical depth with practical examples",
+        "Include code snippets and architecture diagrams",
+        "Comprehensive tags for discoverability",
+        "Link to GitHub repositories",
+        "Detailed implementation guides"
+      ]
+    },
+    "medium": {
+      "bestPractices": [
+        "Long-form detailed content",
+        "Include code examples with explanations",
+        "Use subheadings for easy scanning",
+        "Add relevant tags for discovery",
+        "Include canonical URL to original post"
+      ]
+    },
+    "devto": {
+      "bestPractices": [
+        "Developer-focused technical content",
+        "Include front matter with proper tags",
+        "Use code blocks with syntax highlighting",
+        "Engage with developer community",
+        "Cross-post with canonical URL"
+      ]
+    }
+  },
+  "seoGuidelines": {
+    "titleOptimization": {
+      "length": "30-60 characters",
+      "includeKeywords": "Primary keyword in first 30 characters",
+      "brandSuffix": "| AI Development or | Kiro Guide",
+      "avoid": "Clickbait, keyword stuffing, generic terms"
+    },
+    "metaDescription": {
+      "length": "150-160 characters",
+      "structure": "Hook + Value + Call-to-action",
+      "includeKeywords": "Primary and secondary keywords naturally",
+      "avoid": "Duplicate descriptions, keyword stuffing"
+    },
+    "keywordStrategy": {
+      "primary": ["AI development", "Kiro IDE", "spec-driven development"],
+      "secondary": ["AWS Bedrock", "RAG system", "serverless architecture"],
+      "longTail": ["how to build RAG system with Bedrock", "Kiro AI development workflow"],
+      "density": "0.5-2.5% for primary keywords"
+    },
+    "internalLinking": {
+      "strategy": "Topic clusters around main themes",
+      "anchorText": "Descriptive, keyword-rich",
+      "frequency": "2-5 internal links per 1000 words",
+      "targets": "Related guides, tutorials, case studies"
+    },
+    "externalLinking": {
+      "authority": "Link to AWS documentation, GitHub repos",
+      "relevance": "Technical resources, official documentation",
+      "attributes": "rel='noopener noreferrer' for external links",
+      "frequency": "3-7 external links per article"
+    }
+  }
+}

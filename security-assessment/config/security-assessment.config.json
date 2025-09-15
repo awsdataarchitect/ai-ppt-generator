@@ -1,0 +1,111 @@
+{
+  "projectName": "AI PPT Generator Security Assessment",
+  "targetPath": "../",
+  "outputDirectory": "./security-reports",
+  "enabledScanners": [
+    "frontend",
+    "backend", 
+    "infrastructure",
+    "dependencies",
+    "dataflow",
+    "deployment"
+  ],
+  "parallelExecution": true,
+  "timeoutPerScanner": 300000,
+  "reportFormat": "markdown",
+  "generateIndividualReports": true,
+  "verboseOutput": false,
+  "scannerConfigurations": {
+    "frontend": {
+      "includePaths": ["frontend/src/**/*.{js,jsx,ts,tsx}"],
+      "excludePaths": ["frontend/node_modules/**", "frontend/dist/**"],
+      "checkXSS": true,
+      "checkCSRF": true,
+      "checkAuthTokens": true,
+      "checkInputValidation": true
+    },
+    "backend": {
+      "includePaths": ["backend/**/*.py"],
+      "excludePaths": ["backend/__pycache__/**", "backend/venv/**"],
+      "checkSQLInjection": true,
+      "checkCommandInjection": true,
+      "checkPathTraversal": true,
+      "checkInformationDisclosure": true
+    },
+    "infrastructure": {
+      "includePaths": ["infrastructure/**/*.ts"],
+      "excludePaths": ["infrastructure/node_modules/**", "infrastructure/cdk.out/**"],
+      "checkIAMPolicies": true,
+      "checkS3Buckets": true,
+      "checkAPIGateway": true,
+      "checkDynamoDB": true,
+      "checkCognito": true
+    },
+    "dependencies": {
+      "checkNPM": true,
+      "checkPython": true,
+      "checkCDK": true,
+      "checkLicenses": true,
+      "severityThreshold": "medium"
+    },
+    "dataflow": {
+      "checkPII": true,
+      "checkGDPR": true,
+      "checkCCPA": true,
+      "checkHIPAA": false,
+      "checkMultiTenant": true
+    },
+    "deployment": {
+      "checkSecrets": true,
+      "checkEnvironment": true,
+      "checkBuildProcess": true,
+      "checkMonitoring": true,
+      "checkBackup": true,
+      "checkNetwork": true
+    }
+  },
+  "complianceFrameworks": {
+    "owasp": {
+      "enabled": true,
+      "version": "2021"
+    },
+    "nist": {
+      "enabled": true,
+      "framework": "cybersecurity"
+    },
+    "awsWellArchitected": {
+      "enabled": true,
+      "pillar": "security"
+    },
+    "soc2": {
+      "enabled": true,
+      "type": "typeII"
+    },
+    "iso27001": {
+      "enabled": true,
+      "version": "2013"
+    },
+    "regulatory": {
+      "gdpr": true,
+      "ccpa": true,
+      "hipaa": false
+    }
+  },
+  "reportOptions": {
+    "includeExecutiveSummary": true,
+    "includeDetailedFindings": true,
+    "includeRemediationSteps": true,
+    "includeComplianceMapping": true,
+    "includeRiskAssessment": true,
+    "includeMetrics": true,
+    "includeAppendices": true,
+    "customSections": []
+  },
+  "thresholds": {
+    "maxCriticalVulnerabilities": 0,
+    "maxHighVulnerabilities": 5,
+    "maxMediumVulnerabilities": 20,
+    "minOverallScore": 80,
+    "maxExecutionTime": 1800000
+  }
+}
